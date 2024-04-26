@@ -33,10 +33,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   evenScore: {
-    backgroundColor: "lightgray",
+    backgroundColor: "#ffffff",
   },
   oddScore: {
-    backgroundColor: "lightcoral",
+    backgroundColor: "#f8f8f8",
   },
   loadingText: {
     fontSize: 18,
@@ -97,13 +97,19 @@ export default function App() {
                       flex: 1,
                     }}
                   >
-                    <Text style={{ fontSize: 12 }}>Premiação</Text>
+                    <Text style={{ fontSize: 12, fontWeight: "bold" }}>
+                      Premiação
+                    </Text>
                   </View>
                   <View style={{ flexDirection: "row", flex: 1 }}>
-                    <Text style={{ fontSize: 12 }}>Pontuação </Text>
+                    <Text style={{ fontSize: 12, fontWeight: "bold" }}>
+                      Pontuação{" "}
+                    </Text>
                   </View>
                   <View style={{ flexDirection: "row", flex: 1 }}>
-                    <Text style={{ fontSize: 12 }}>Patrimônio</Text>
+                    <Text style={{ fontSize: 12, fontWeight: "bold" }}>
+                      Patrimônio
+                    </Text>
                   </View>
                 </View>
                 {sortedData.map((score: any, index: number) => (
