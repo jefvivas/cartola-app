@@ -89,7 +89,9 @@ export default function App() {
               <View>
                 <View style={styles.header}>
                   <View style={{ flexDirection: "row", flex: 3 }}>
-                    <Text style={{ fontSize: 18 }}>Time</Text>
+                    <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+                      Time
+                    </Text>
                   </View>
                   <View
                     style={{
