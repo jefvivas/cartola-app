@@ -8,9 +8,9 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="teamDetails" component={TeamDetailsScreen} />
+      <Stack.Navigator initialRouteName="Pontuação">
+        <Stack.Screen name="Pontuação" component={HomeScreen} />
+        <Stack.Screen name="Detalhes" component={TeamDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

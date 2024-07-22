@@ -124,10 +124,11 @@ export default function HomeScreen({ navigation }: any) {
                 {sortedData.map((score: any, index: number) => (
                   <TouchableOpacity
                     onPress={() =>
-                      navigation.navigate("teamDetails", {
+                      navigation.navigate("Detalhes", {
                         teamId: score.teamId,
                       })
                     }
+                    key={index}
                   >
                     <View
                       key={index}
