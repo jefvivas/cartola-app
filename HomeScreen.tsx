@@ -65,7 +65,7 @@ export default function HomeScreen({ navigation }: any) {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "https://l3ap22g0wi.execute-api.sa-east-1.amazonaws.com/prod/get-teams-scores"
+          "https://da65a8cz49.execute-api.sa-east-1.amazonaws.com/prod/get-teams-scores"
         );
         setData(response.data);
       } catch (error: any) {

@@ -4,17 +4,22 @@ import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 
 export default function TeamDetailsScreen({ route }: any) {
   const { teamId } = route.params;
-  const [data, setData] = useState<any>(null);
+  const [leagueData, setLeagueData] = useState<any>(null);
+  const [cupData, setCupData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `https://l3ap22g0wi.execute-api.sa-east-1.amazonaws.com/prod/get-team-awards?team=${teamId}`
+        const leagueResponse = await axios.get(
+          `https://da65a8cz49.execute-api.sa-east-1.amazonaws.com/prod/get-team-awards?team=${teamId}`
         );
-        setData(response.data);
+        const cupResponse = await axios.get(
+          `https://da65a8cz49.execute-api.sa-east-1.amazonaws.com/prod/get-team-cup-awards?team=${teamId}`
+        );
+        setLeagueData(leagueResponse.data);
+        setCupData(cupResponse.data);
       } catch (error: any) {
         setError(error.message);
       } finally {
@@ -41,27 +46,47 @@ export default function TeamDetailsScreen({ route }: any) {
       </View>
     );
   }
+  const leagueSum =
+    leagueData?.award?.reduce((acc: number, curr: number) => acc + curr, 0) ||
+    0;
+  const cupSum =
+    cupData?.award?.reduce((acc: number, curr: number) => acc + curr, 0) || 0;
 
-  const totalSum = data?.award?.reduce((acc: number, curr: number) => acc + curr, 0) || 0;
+  if (leagueSum === 0 && cupSum === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Sem Premiação</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {totalSum !== 0 ? (
-        data.award.map((item: any, index: any) => {
-          if (item !== 0) {
-            return (
-              <View key={index} style={styles.box}>
-                <Text style={styles.text}>
-                  Ganhou {item} reais na rodada {index + 1}
-                </Text>
-              </View>
-            );
-          }
-          return null;
-        })
-      ) : (
-        <Text style={styles.text}>No awards</Text>
-      )}
+      {leagueData.award.map((item: any, index: any) => {
+        if (item !== 0) {
+          return (
+            <View key={index} style={styles.box}>
+              <Text style={styles.text}>
+                Ganhou {item} reais na rodada {index + 1}
+              </Text>
+            </View>
+          );
+        }
+        return null;
+      })}
+
+      {cupData.map((item: any, index: any) => {
+        if (item !== 0) {
+          return (
+            <View key={index} style={styles.box}>
+              <Text style={styles.text}>
+                Ganhou {item} reais na liga mata-mata {index + 1}
+              </Text>
+            </View>
+          );
+        }
+        return null;
+      })}
     </View>
   );
 }

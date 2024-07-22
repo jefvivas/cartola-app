@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Palpiteiros",
-    "slug": "Palpiteiros",
+    "slug": "a",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kromicks.a"
+      "package": "com.kromicks.Palpiteiros",
+      "versionCode":2
     },
     "web": {
       "favicon": "./assets/favicon.png"
