@@ -78,9 +78,18 @@ export default function HomeScreen({ navigation }: any) {
 
   useEffect(() => {
     if (data && data.scores) {
-      const sortedScores = data.scores
+      const scoresWithTotals = data.scores.map((item: any) => {
+        const totalScoreSum = item.score.reduce(
+          (acc: number, curr: number) => acc + curr,
+          0
+        );
+        return { ...item, totalScoreSum };
+      });
+
+      const sortedScores = scoresWithTotals
         .slice()
-        .sort((a: any, b: any) => b.award - a.award);
+        .sort((a: any, b: any) => b.totalScoreSum - a.totalScoreSum);
+
       setSortedData(sortedScores);
     }
   }, [data]);
@@ -125,7 +134,7 @@ export default function HomeScreen({ navigation }: any) {
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate("Detalhes", {
-                        teamId: score.teamId,
+                        teamData: score,
                       })
                     }
                     key={index}
@@ -148,7 +157,17 @@ export default function HomeScreen({ navigation }: any) {
                           justifyContent: "center",
                         }}
                       >
-                        <Text style={{ fontSize: 12 }}>{score.award}</Text>
+                        <Text style={{ fontSize: 12 }}>
+                          {score.award.reduce(
+                            (acc: number, curr: number) => acc + curr,
+                            0
+                          ) +
+                            score.cupAward.reduce(
+                              (acc: number, curr: number) => acc + curr,
+                              0
+                            ) +
+                            score.halfChampionship}
+                        </Text>
                       </View>
                       <View
                         style={{
