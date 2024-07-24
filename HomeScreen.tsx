@@ -8,6 +8,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
+import RNPickerSelect from "react-native-picker-select";
 import axios from "axios";
 
 const windowWidth = Dimensions.get("window").width;
@@ -54,12 +55,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "red",
   },
+  pickerContainer: {
+    height: 50,
+    width: 250,
+    borderWidth: 1,
+    borderColor: "lightgray",
+    borderRadius: 5,
+    marginBottom: 20,
+  },
 });
+
+const calculateTotalAward = (score: any) => {
+  return (
+    score.award.reduce((acc: any, curr: any) => acc + curr, 0) +
+    score.cupAward.reduce((acc: any, curr: any) => acc + curr, 0) +
+    score.halfChampionship
+  );
+};
 
 export default function HomeScreen({ navigation }: any) {
   const [data, setData] = useState<any>(null);
   const [sortedData, setSortedData] = useState<any>(null);
   const [error, setError] = useState(null);
+  const [sortCriterion, setSortCriterion] = useState("totalScore");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +85,12 @@ export default function HomeScreen({ navigation }: any) {
         const response = await axios.get(
           "https://da65a8cz49.execute-api.sa-east-1.amazonaws.com/prod/get-teams-scores"
         );
-        setData(response.data);
+        const processedData = response.data.scores.map((score: any) => ({
+          ...score,
+          totalAward: calculateTotalAward(score),
+        }));
+
+        setData({ ...response.data, scores: processedData });
       } catch (error: any) {
         setError(error.message);
       }
@@ -78,24 +101,45 @@ export default function HomeScreen({ navigation }: any) {
 
   useEffect(() => {
     if (data && data.scores) {
-      const scoresWithTotals = data.scores.map((item: any) => {
-        const totalScoreSum = item.score.reduce(
-          (acc: number, curr: number) => acc + curr,
-          0
-        );
-        return { ...item, totalScoreSum };
+      const sortedScores = [...data.scores].sort((a: any, b: any) => {
+        return b[sortCriterion] - a[sortCriterion];
       });
-
-      const sortedScores = scoresWithTotals
-        .slice()
-        .sort((a: any, b: any) => b.totalScoreSum - a.totalScoreSum);
 
       setSortedData(sortedScores);
     }
-  }, [data]);
+  }, [data, sortCriterion]);
+
+  const handleSortChange = (value: string) => {
+    setSortCriterion(value);
+  };
 
   return (
     <View style={styles.container}>
+      <View style={styles.pickerContainer}>
+        <RNPickerSelect
+          items={[
+            { label: "Pontuação Total", value: "totalScore" },
+            { label: "Premiação", value: "totalAward" },
+            { label: "Patrimônio", value: "netWorth" },
+          ]}
+          onValueChange={(itemValue) => handleSortChange(itemValue)}
+          useNativeAndroidPickerStyle={false}
+          style={{
+            inputIOS: {
+              fontSize: 16,
+              padding: 10,
+              color: "gray",
+            },
+            inputAndroid: {
+              fontSize: 16,
+              padding: 10,
+              color: "#000",
+              textAlign: "center",
+            },
+          }}
+          value={sortCriterion}
+        ></RNPickerSelect>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {error ? (
           <Text style={styles.errorText}>Error: {error}</Text>
@@ -123,11 +167,19 @@ export default function HomeScreen({ navigation }: any) {
                     <Text style={{ fontSize: 12, fontWeight: "bold" }}>
                       Pontuação{" "}
                     </Text>
+                    <TouchableOpacity
+                      style={{ flexDirection: "row", flex: 1 }}
+                      onPress={() => handleSortChange("award")}
+                    ></TouchableOpacity>
                   </View>
                   <View style={{ flexDirection: "row", flex: 1 }}>
                     <Text style={{ fontSize: 12, fontWeight: "bold" }}>
                       Patrimônio
                     </Text>
+                    <TouchableOpacity
+                      style={{ flexDirection: "row", flex: 1 }}
+                      onPress={() => handleSortChange("award")}
+                    ></TouchableOpacity>
                   </View>
                 </View>
                 {sortedData.map((score: any, index: number) => (
