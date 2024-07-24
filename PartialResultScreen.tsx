@@ -99,7 +99,6 @@ export default function PartialResultScreen({ navigation }: any) {
         (a: any, b: any) => b.score - a.score
       );
 
-      console.log(sortedScores);
       setSortedData(sortedScores);
     }
   }, [data, round]);
@@ -169,29 +168,30 @@ export default function PartialResultScreen({ navigation }: any) {
                     </Text>
                   </View>
                 </View>
-                {sortedData.map((score: any, index: number) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.scoreContainer,
-                      index % 2 === 0 ? styles.evenScore : styles.oddScore,
-                    ]}
-                  >
-                    <View style={{ flexDirection: "column", flex: 3 }}>
-                      <Text style={{ fontSize: 15 }}>{score.teamName}</Text>
-                      <Text style={{ fontSize: 12 }}>{score.teamOwner}</Text>
-                    </View>
+                {sortedData &&
+                  sortedData.map((score: any, index: number) => (
                     <View
-                      style={{
-                        flexDirection: "row",
-                        flex: 1,
-                        justifyContent: "center",
-                      }}
+                      key={index}
+                      style={[
+                        styles.scoreContainer,
+                        index % 2 === 0 ? styles.evenScore : styles.oddScore,
+                      ]}
                     >
-                      <Text style={{ fontSize: 12 }}>{score.score}</Text>
+                      <View style={{ flexDirection: "column", flex: 3 }}>
+                        <Text style={{ fontSize: 15 }}>{score.teamName}</Text>
+                        <Text style={{ fontSize: 12 }}>{score.teamOwner}</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flex: 1,
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ fontSize: 12 }}>{score.score}</Text>
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  ))}
               </View>
             ) : (
               <Text style={styles.loadingText}>Loading...</Text>
