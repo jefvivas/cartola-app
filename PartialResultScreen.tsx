@@ -9,6 +9,8 @@ import {
   TeamScore,
 } from "./Interfaces";
 import { StackNavigationProp } from "@react-navigation/stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getStorage } from "./AsyncStorage";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -90,7 +92,7 @@ export default function PartialResultScreen({ navigation }: Props) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const teamInfo = await getTeamsInfo();
+        const teamInfo = await getStorage();
 
         if (!teamInfo) {
           setError("Failed to fetch data");

@@ -12,6 +12,8 @@ import RNPickerSelect from "react-native-picker-select";
 import { getTeamsInfo } from "./Axios";
 import { GetTeamsScoresResponse, TeamScore, SortCriterion } from "./Interfaces";
 import { StackNavigationProp } from "@react-navigation/stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setStorage } from "./AsyncStorage";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -65,7 +67,10 @@ export default function HomeScreen({ navigation }: Props) {
           totalScore: calculateTotalScore(score),
         }));
 
-        setTeamData({ ...teamInfo, scores: processedData });
+        const processedTeamInfo = { ...teamInfo, scores: processedData };
+
+        setTeamData(processedTeamInfo);
+        await setStorage(processedTeamInfo);
       } catch (error) {
         if (error instanceof Error) setError(error.message);
       }
