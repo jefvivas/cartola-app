@@ -2,14 +2,12 @@ import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { ScrollView, StyleSheet, Text, View, Dimensions } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
-import { getTeamsInfo } from "./Axios";
 import {
   GetTeamsScoresResponse,
   PartialSortedData,
   TeamScore,
 } from "./Interfaces";
 import { StackNavigationProp } from "@react-navigation/stack";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getStorage } from "./AsyncStorage";
 
 const windowWidth = Dimensions.get("window").width;
