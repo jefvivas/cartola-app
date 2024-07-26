@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View, Dimensions } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
-import axios from "axios";
+import { getTeamsInfo } from "./Axios";
+import {
+  GetTeamsScoresResponse,
+  PartialSortedData,
+  TeamScore,
+} from "./Interfaces";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -65,22 +64,42 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function PartialResultScreen({ navigation }: any) {
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState(null);
+type RootStackParamList = {
+  Home: undefined;
+  PartialResult: undefined;
+  TeamDetails: { teamData: TeamScore };
+};
+
+type PartialResultScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "PartialResult"
+>;
+
+interface Props {
+  navigation: PartialResultScreenNavigationProp;
+}
+
+export default function PartialResultScreen({ navigation }: Props) {
+  const [teamData, setTeamData] = useState<GetTeamsScoresResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [round, setRound] = useState(0);
-  const [sortedData, setSortedData] = useState<any>(null);
+  const [sortedData, setSortedData] = useState<PartialSortedData[] | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          "https://da65a8cz49.execute-api.sa-east-1.amazonaws.com/prod/get-teams-scores"
-        );
+        const teamInfo = await getTeamsInfo();
 
-        setData(response.data);
-      } catch (error: any) {
-        setError(error.message);
+        if (!teamInfo) {
+          setError("Failed to fetch data");
+          return;
+        }
+
+        setTeamData(teamInfo);
+      } catch (error) {
+        if (error instanceof Error) setError(error.message);
       }
     };
 
@@ -88,26 +107,26 @@ export default function PartialResultScreen({ navigation }: any) {
   }, []);
 
   useEffect(() => {
-    if (data && data.scores && round >= 0) {
-      const sortedUsefulData = data.scores.map((score: any) => ({
-        teamOwner: score.team_owner,
-        teamName: score.team_name,
-        score: score.score[round],
-      }));
-
-      const sortedScores = sortedUsefulData.sort(
-        (a: any, b: any) => b.score - a.score
+    if (teamData && teamData.scores && round >= 0) {
+      const sortedUsefulData: PartialSortedData[] = teamData.scores.map(
+        (score) => ({
+          teamOwner: score.team_owner,
+          teamName: score.team_name,
+          score: score.score[round],
+        })
       );
+
+      const sortedScores = sortedUsefulData.sort((a, b) => b.score - a.score);
 
       setSortedData(sortedScores);
     }
-  }, [data, round]);
+  }, [teamData, round]);
 
   const handleRoundChange = (round: number) => {
     setRound(round);
   };
 
-  if (!data) {
+  if (!teamData) {
     return (
       <View style={styles.container}>
         <Text style={styles.loadingText}>Loading...</Text>
@@ -115,7 +134,7 @@ export default function PartialResultScreen({ navigation }: any) {
     );
   }
 
-  const scoreItems = data.scores[0].score.map((_: any, index: number) => ({
+  const scoreItems = teamData.scores[0].score.map((_, index: number) => ({
     label: `Rodada ${index + 1}`,
     value: index,
   }));
@@ -148,7 +167,7 @@ export default function PartialResultScreen({ navigation }: any) {
           <Text style={styles.errorText}>Error: {error}</Text>
         ) : (
           <>
-            {data && data.scores ? (
+            {teamData && teamData.scores ? (
               <View>
                 <View style={styles.header}>
                   <View style={{ flexDirection: "row", flex: 3 }}>
@@ -169,7 +188,7 @@ export default function PartialResultScreen({ navigation }: any) {
                   </View>
                 </View>
                 {sortedData &&
-                  sortedData.map((score: any, index: number) => (
+                  sortedData.map((score, index: number) => (
                     <View
                       key={index}
                       style={[

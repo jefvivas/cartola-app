@@ -9,90 +9,65 @@ import {
   TouchableOpacity,
 } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
-import axios from "axios";
+import { getTeamsInfo } from "./Axios";
+import { GetTeamsScoresResponse, TeamScore, SortCriterion } from "./Interfaces";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 const windowWidth = Dimensions.get("window").width;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: 40,
-  },
-  header: {
-    flex: 1,
-    backgroundColor: "lightgray",
-    height: 50,
-    alignItems: "center",
-    flexDirection: "row",
-    padding: 10,
-  },
-  scrollViewContent: {
-    alignItems: "center",
-  },
-  scoreContainer: {
-    width: windowWidth,
-    padding: 10,
-    marginBottom: 1,
-    borderWidth: 1,
-    borderColor: "lightgray",
-    flexDirection: "row",
-  },
-  evenScore: {
-    backgroundColor: "#ffffff",
-  },
-  oddScore: {
-    backgroundColor: "#f8f8f8",
-  },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  errorText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "red",
-  },
-  pickerContainer: {
-    height: 50,
-    width: 250,
-    borderWidth: 1,
-    borderColor: "lightgray",
-    borderRadius: 5,
-    marginBottom: 20,
-  },
-});
+const calculateTotalAward = (score: TeamScore) => {
+  const awardTotal = Array.isArray(score.award)
+    ? score.award.reduce((acc: number, curr: number) => acc + curr, 0)
+    : 0;
 
-const calculateTotalAward = (score: any) => {
-  return (
-    score.award.reduce((acc: any, curr: any) => acc + curr, 0) +
-    score.cupAward.reduce((acc: any, curr: any) => acc + curr, 0) +
-    score.halfChampionship
-  );
+  const cupAwardTotal = Array.isArray(score.cupAward)
+    ? score.cupAward.reduce((acc: number, curr: number) => acc + curr, 0)
+    : 0;
+  return awardTotal + cupAwardTotal + score.halfChampionship;
 };
 
-export default function HomeScreen({ navigation }: any) {
-  const [data, setData] = useState<any>(null);
-  const [sortedData, setSortedData] = useState<any>(null);
-  const [error, setError] = useState(null);
-  const [sortCriterion, setSortCriterion] = useState("totalScore");
+const calculateTotalScore = (score: TeamScore) => {
+  const scoreTotal = Array.isArray(score.score)
+    ? score.award.reduce((acc: number, curr: number) => acc + curr, 0)
+    : 0;
+  return scoreTotal;
+};
+
+type RootStackParamList = {
+  Home: undefined;
+  Detalhes: { teamData: TeamScore };
+};
+
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
+
+interface Props {
+  navigation: HomeScreenNavigationProp;
+}
+
+export default function HomeScreen({ navigation }: Props) {
+  const [teamData, setTeamData] = useState<GetTeamsScoresResponse | null>(null);
+  const [sortedData, setSortedData] = useState<TeamScore[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [sortCriterion, setSortCriterion] =
+    useState<SortCriterion>("totalScore");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          "https://da65a8cz49.execute-api.sa-east-1.amazonaws.com/prod/get-teams-scores"
-        );
-        const processedData = response.data.scores.map((score: any) => ({
+        const teamInfo = await getTeamsInfo();
+        if (!teamInfo) {
+          setError("Failed to fetch data");
+          return;
+        }
+        const processedData = teamInfo.scores.map((score) => ({
           ...score,
           totalAward: calculateTotalAward(score),
+          totalScore: calculateTotalScore(score),
         }));
 
-        setData({ ...response.data, scores: processedData });
-      } catch (error: any) {
-        setError(error.message);
+        setTeamData({ ...teamInfo, scores: processedData });
+      } catch (error) {
+        if (error instanceof Error) setError(error.message);
       }
     };
 
@@ -100,16 +75,18 @@ export default function HomeScreen({ navigation }: any) {
   }, []);
 
   useEffect(() => {
-    if (data && data.scores) {
-      const sortedScores = [...data.scores].sort((a: any, b: any) => {
-        return b[sortCriterion] - a[sortCriterion];
+    if (teamData && teamData.scores) {
+      const sortedScores = [...teamData.scores].sort((a, b) => {
+        const aValue = a[sortCriterion] as number;
+        const bValue = b[sortCriterion] as number;
+        return bValue - aValue;
       });
 
       setSortedData(sortedScores);
     }
-  }, [data, sortCriterion]);
+  }, [teamData, sortCriterion]);
 
-  const handleSortChange = (value: string) => {
+  const handleSortChange = (value: keyof TeamScore) => {
     setSortCriterion(value);
   };
 
@@ -182,7 +159,7 @@ export default function HomeScreen({ navigation }: any) {
                     ></TouchableOpacity>
                   </View>
                 </View>
-                {sortedData.map((score: any, index: number) => (
+                {sortedData.map((score, index) => (
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate("Detalhes", {
@@ -209,17 +186,7 @@ export default function HomeScreen({ navigation }: any) {
                           justifyContent: "center",
                         }}
                       >
-                        <Text style={{ fontSize: 12 }}>
-                          {score.award.reduce(
-                            (acc: number, curr: number) => acc + curr,
-                            0
-                          ) +
-                            score.cupAward.reduce(
-                              (acc: number, curr: number) => acc + curr,
-                              0
-                            ) +
-                            score.halfChampionship}
-                        </Text>
+                        <Text style={{ fontSize: 12 }}>{score.totalAward}</Text>
                       </View>
                       <View
                         style={{
@@ -254,3 +221,55 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingTop: 40,
+  },
+  header: {
+    flex: 1,
+    backgroundColor: "lightgray",
+    height: 50,
+    alignItems: "center",
+    flexDirection: "row",
+    padding: 10,
+  },
+  scrollViewContent: {
+    alignItems: "center",
+  },
+  scoreContainer: {
+    width: windowWidth,
+    padding: 10,
+    marginBottom: 1,
+    borderWidth: 1,
+    borderColor: "lightgray",
+    flexDirection: "row",
+  },
+  evenScore: {
+    backgroundColor: "#ffffff",
+  },
+  oddScore: {
+    backgroundColor: "#f8f8f8",
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "red",
+  },
+  pickerContainer: {
+    height: 50,
+    width: 250,
+    borderWidth: 1,
+    borderColor: "lightgray",
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+});

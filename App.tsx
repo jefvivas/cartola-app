@@ -4,13 +4,19 @@ import PartialResultScreen from "./PartialResultScreen";
 import TeamDetailsScreen from "./TeamDetails";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+import { TeamScore } from "./Interfaces";
 
-const Stack = createNativeStackNavigator();
+type RootStackParamList = {
+  Home: undefined;
+  Detalhes: { teamData: TeamScore };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
 
 const StackNavigator = () => (
   <Stack.Navigator>
-    <Stack.Screen name="Home " component={HomeScreen} />
+    <Stack.Screen name="Home" component={HomeScreen} />
     <Stack.Screen name="Detalhes" component={TeamDetailsScreen} />
   </Stack.Navigator>
 );

@@ -1,7 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { TeamScore } from "./Interfaces";
+import { RouteProp } from "@react-navigation/native";
 
-export default function TeamDetailsScreen({ route }: any) {
+type RootStackParamList = {
+  Home: undefined;
+  Detalhes: { teamData: TeamScore };
+};
+
+type TeamDetailsRouteProp = RouteProp<RootStackParamList, "Detalhes">;
+
+export default function TeamDetailsScreen({
+  route,
+}: {
+  route: TeamDetailsRouteProp;
+}) {
   const { teamData } = route.params;
 
   const leagueSum =
@@ -20,7 +33,7 @@ export default function TeamDetailsScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
-      {teamData?.award?.map((item: any, index: any) => {
+      {teamData?.award?.map((item, index) => {
         if (item !== 0) {
           return (
             <View key={index} style={styles.box}>
@@ -33,7 +46,7 @@ export default function TeamDetailsScreen({ route }: any) {
         return null;
       })}
 
-      {teamData?.cupAward?.map((item: any, index: any) => {
+      {teamData?.cupAward?.map((item, index) => {
         if (item !== 0) {
           return (
             <View key={index} style={styles.box}>
