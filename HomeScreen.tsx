@@ -30,7 +30,14 @@ const calculateTotalAward = (score: TeamScore) => {
 
 const calculateTotalScore = (score: TeamScore) => {
   const scoreTotal = Array.isArray(score.score)
-    ? score.award.reduce((acc: number, curr: number) => acc + curr, 0)
+    ? Number(
+        score.score
+          .reduce(
+            (acc: number, curr: number) => Math.round((acc + curr) * 100) / 100,
+            0
+          )
+          .toFixed(2)
+      )
     : 0;
   return scoreTotal;
 };
