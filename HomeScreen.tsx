@@ -7,12 +7,12 @@ import {
   View,
   Dimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { getTeamsInfo } from "./Axios";
 import { GetTeamsScoresResponse, TeamScore, SortCriterion } from "./Interfaces";
 import { StackNavigationProp } from "@react-navigation/stack";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setStorage } from "./AsyncStorage";
 
 const windowWidth = Dimensions.get("window").width;
@@ -25,7 +25,14 @@ const calculateTotalAward = (score: TeamScore) => {
   const cupAwardTotal = Array.isArray(score.cupAward)
     ? score.cupAward.reduce((acc: number, curr: number) => acc + curr, 0)
     : 0;
-  return awardTotal + cupAwardTotal + score.halfChampionship;
+  return (
+    awardTotal +
+    cupAwardTotal +
+    score.halfChampionship +
+    score.secondHalfChampionship +
+    score.richerTeam +
+    score.champion
+  );
 };
 
 const calculateTotalScore = (score: TeamScore) => {
@@ -104,37 +111,41 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.pickerContainer}>
-        <RNPickerSelect
-          items={[
-            { label: "Pontuação Total", value: "totalScore" },
-            { label: "Premiação", value: "totalAward" },
-            { label: "Patrimônio", value: "netWorth" },
-          ]}
-          onValueChange={(itemValue) => handleSortChange(itemValue)}
-          useNativeAndroidPickerStyle={false}
-          style={{
-            inputIOS: {
-              fontSize: 16,
-              padding: 10,
-              color: "gray",
-            },
-            inputAndroid: {
-              fontSize: 16,
-              padding: 10,
-              color: "#000",
-              textAlign: "center",
-            },
-          }}
-          value={sortCriterion}
-        ></RNPickerSelect>
-      </View>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {error ? (
-          <Text style={styles.errorText}>Error: {error}</Text>
-        ) : (
-          <>
-            {sortedData ? (
+      {!sortedData ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#D3D3D3" />
+        </View>
+      ) : (
+        <>
+          <View style={styles.pickerContainer}>
+            <RNPickerSelect
+              items={[
+                { label: "Pontuação Total", value: "totalScore" },
+                { label: "Premiação", value: "totalAward" },
+                { label: "Patrimônio", value: "netWorth" },
+              ]}
+              onValueChange={(itemValue) => handleSortChange(itemValue)}
+              useNativeAndroidPickerStyle={false}
+              style={{
+                inputIOS: {
+                  fontSize: 16,
+                  padding: 10,
+                  color: "gray",
+                },
+                inputAndroid: {
+                  fontSize: 16,
+                  padding: 10,
+                  color: "#000",
+                  textAlign: "center",
+                },
+              }}
+              value={sortCriterion}
+            />
+          </View>
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
+            {error ? (
+              <Text style={styles.errorText}>Error: {error}</Text>
+            ) : (
               <View>
                 <View style={styles.header}>
                   <View style={{ flexDirection: "row", flex: 3 }}>
@@ -142,24 +153,19 @@ export default function HomeScreen({ navigation }: Props) {
                       Time
                     </Text>
                   </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flex: 1,
-                    }}
-                  >
+                  <View style={{ flexDirection: "row", flex: 1 }}>
                     <Text style={{ fontSize: 12, fontWeight: "bold" }}>
                       Premiação
                     </Text>
                   </View>
                   <View style={{ flexDirection: "row", flex: 1 }}>
                     <Text style={{ fontSize: 12, fontWeight: "bold" }}>
-                      Pontuação{" "}
+                      Pontuação
                     </Text>
                     <TouchableOpacity
                       style={{ flexDirection: "row", flex: 1 }}
                       onPress={() => handleSortChange("award")}
-                    ></TouchableOpacity>
+                    />
                   </View>
                   <View style={{ flexDirection: "row", flex: 1 }}>
                     <Text style={{ fontSize: 12, fontWeight: "bold" }}>
@@ -168,7 +174,7 @@ export default function HomeScreen({ navigation }: Props) {
                     <TouchableOpacity
                       style={{ flexDirection: "row", flex: 1 }}
                       onPress={() => handleSortChange("award")}
-                    ></TouchableOpacity>
+                    />
                   </View>
                 </View>
                 {sortedData.map((score, index) => (
@@ -222,13 +228,10 @@ export default function HomeScreen({ navigation }: Props) {
                   </TouchableOpacity>
                 ))}
               </View>
-            ) : (
-              <Text style={styles.loadingText}>Loading...</Text>
             )}
-          </>
-        )}
-      </ScrollView>
-
+          </ScrollView>
+        </>
+      )}
       <StatusBar style="auto" />
     </View>
   );
@@ -266,6 +269,11 @@ const styles = StyleSheet.create({
   },
   oddScore: {
     backgroundColor: "#f8f8f8",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 18,

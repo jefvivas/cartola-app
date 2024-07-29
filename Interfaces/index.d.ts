@@ -7,6 +7,9 @@ export interface TeamScore {
   netWorth: number;
   cupAward: number[];
   halfChampionship: number;
+  secondHalfChampionship: number;
+  richerTeam: number;
+  champion: number;
   totalAward?: number;
   totalScore?: number;
 }
